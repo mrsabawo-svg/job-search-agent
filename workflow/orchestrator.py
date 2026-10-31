@@ -21,6 +21,11 @@ def qualify_job(job: JobRecord, *, policy_version: int = 1) -> ValidationResult:
     reasons += validate_employer(job.employer_name, job.employer_domain)
     reasons += detect_risk(job.description_text)
 
+    if not job.eligible_locations:
+        review_flags.append("geographic_eligibility_unclear")
+    else:
+        review_flags.append("applicant_location_match_not_assessed")
+
     reasons = list(dict.fromkeys(reasons))
     review_flags = list(dict.fromkeys(review_flags))
     decision = DecisionState.REJECT if reasons else DecisionState.REVIEW
