@@ -5,6 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from domain.decision_states import DecisionState
+from schema.application_package import ApplicationPackage
 from schema.job_record import Compensation, JobRecord
 from schema.validation_result import Evidence, ValidationResult
 from workflow.orchestrator import qualify_job
@@ -76,3 +77,58 @@ def test_result_requires_positive_policy_version():
 def test_evidence_requires_valid_source_and_timestamp():
     with pytest.raises(ValidationError):
         Evidence.model_validate({"field": "workplace", "value": "remote", "source_url": "bad-url", "captured_at": "bad-time"})
+
+
+def test_evidence_requires_timezone_aware_timestamp():
+    with pytest.raises(ValidationError):
+        Evidence.model_validate({
+            "field": "workplace",
+            "value": "remote",
+            "source_url": "https://example.org/job/1",
+            "captured_at": "2026-10-31T10:00:00",
+        })
+
+
+def test_reject_requires_reason_code():
+    with pytest.raises(ValidationError):
+        ValidationResult.model_validate({"job_id": "job-1", "decision": "REJECT"})
+
+
+def test_accept_requires_evidence():
+    with pytest.raises(ValidationError):
+        ValidationResult.model_validate({"job_id": "job-1", "decision": "ACCEPT"})
+
+
+def test_accept_cannot_contain_review_flags():
+    with pytest.raises(ValidationError):
+        ValidationResult.model_validate({
+            "job_id": "job-1",
+            "decision": "ACCEPT",
+            "evidence": [{
+                "field": "workplace",
+                "value": "remote",
+                "source_url": "https://example.org/job/1",
+                "captured_at": "2026-10-31T10:00:00+00:00",
+            }],
+            "review_flags": ["geography_unclear"],
+        })
+
+
+def test_validation_codes_must_be_unique():
+    with pytest.raises(ValidationError):
+        ValidationResult.model_validate({
+            "job_id": "job-1",
+            "decision": "REJECT",
+            "reason_codes": ["not_remote", "not_remote"],
+        })
+
+
+def test_application_package_cannot_carry_approval_authority():
+    with pytest.raises(ValidationError):
+        ApplicationPackage.model_validate({
+            "job_id": "job-1",
+            "resume_variant_id": "resume-1",
+            "tailored_resume_text": "Resume content",
+            "human_approved": True,
+            "submission_authorized": True,
+        })
