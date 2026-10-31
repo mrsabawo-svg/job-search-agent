@@ -1,0 +1,19 @@
+rejection_reasons:
+  off_domain: Role does not match an allowed technical category.
+  pay_unstated: Compensation absent or not explicit.
+  commission_only: Commission-only compensation.
+  equity_only: Equity-only compensation.
+  agency_posting: Unapproved third-party agency posting.
+  scam_signal: Credible scam indicators.
+  apply_domain_unknown: Application destination cannot be verified.
+  region_ineligible: Applicant location explicitly excluded.
+  duplicate: Duplicate opportunity.
+  expired: Job closed or expired.
+  not_remote: Hybrid, onsite or unconfirmed remote status.
+  employment_type_not_allowed: Employment type outside policy.
+  employer_unverifiable: Employer identity cannot be verified.
+  paid_to_apply: Candidate asked to pay to apply.
+  crypto_trading_scheme: Crypto or investment scheme.
+  network_marketing: Multi-level/network marketing.
+  vague_data_entry: Vague remote data-entry offer.
+  generic_virtual_assistant: Generic VA role outside target scope.

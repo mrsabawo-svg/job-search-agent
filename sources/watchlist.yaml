@@ -1,0 +1,2 @@
+watchlist:
+  - {domain: example.com, status: blocked, reason: Placeholder; not an approved source.}

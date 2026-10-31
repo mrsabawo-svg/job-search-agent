@@ -1,0 +1,29 @@
+policy_id: remote_software_engineering_job_qualifier
+version: 1
+status: draft
+target_categories: [backend_engineering, frontend_engineering, full_stack_engineering, software_engineering, platform_engineering, cloud_engineering, devops, site_reliability_engineering, data_engineering, machine_learning_engineering, qa_automation]
+employment_types: [full_time, contract]
+workplace: remote_only
+compensation:
+  required: true
+  accepted_types: [salary, hourly]
+  require_currency: true
+  require_period: true
+  reject_unspecified: true
+sources:
+  employer_ats_only_by_default: true
+  approved_source_file: sources/approved_sources.yaml
+  watchlist_file: sources/watchlist.yaml
+hard_rejections: [paid_to_apply, commission_only, equity_only, crypto_trading_scheme, network_marketing, vague_remote_data_entry, generic_virtual_assistant, unverifiable_employer]
+human_review_required: [geographic_eligibility_unclear, compensation_conversion_unclear, employer_identity_conflict, application_domain_unverified, security_or_screening_declaration, any_personal_data_submission]
+stop_conditions:
+  max_runtime_minutes: 45
+  max_sources_per_run: 8
+  max_discovery_attempts: 120
+  max_unique_candidates: 250
+  max_validation_attempts: 250
+  max_application_attempts: 0
+  max_browser_sessions: 2
+  max_retries_per_operation: 2
+  max_llm_calls: 100
+  max_llm_cost_usd: 2.0

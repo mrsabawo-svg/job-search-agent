@@ -1,0 +1,6 @@
+approved_sources:
+  - {id: greenhouse, type: employer_ats, enabled: true, domains: [greenhouse.io, boards.greenhouse.io]}
+  - {id: lever, type: employer_ats, enabled: true, domains: [lever.co, jobs.lever.co]}
+  - {id: ashby, type: employer_ats, enabled: true, domains: [ashbyhq.com, jobs.ashbyhq.com]}
+  - {id: remoteok, type: job_board, enabled: false, reason: Requires explicit approval.}
+  - {id: weworkremotely, type: job_board, enabled: false, reason: Requires explicit approval.}
