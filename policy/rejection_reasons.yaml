@@ -3,7 +3,7 @@ rejection_reasons:
   pay_unstated: Compensation absent or not explicit.
   commission_only: Commission-only compensation.
   equity_only: Equity-only compensation.
-  agency_posting: Unapproved third-party agency posting.
+  agency_posting: Posting identifies a third-party recruitment or staffing agency rather than the hiring employer.
   scam_signal: Credible scam indicators.
   apply_domain_unknown: Application destination cannot be verified.
   region_ineligible: Applicant location explicitly excluded.
@@ -11,7 +11,7 @@ rejection_reasons:
   expired: Job closed or expired.
   not_remote: Hybrid, onsite or unconfirmed remote status.
   employment_type_not_allowed: Employment type outside policy.
-  employer_unverifiable: Employer identity cannot be verified.
+  employer_unverifiable: Employer identity or employer domain cannot be verified.
   paid_to_apply: Candidate asked to pay to apply.
   pay_to_start: Candidate is asked to pay a registration, training, onboarding or equipment fee to begin.
   dm_only_hiring: Hiring process directs applicants to informal direct-message contact.
@@ -20,7 +20,9 @@ rejection_reasons:
   network_marketing: Multi-level/network marketing.
   vague_data_entry: Vague remote data-entry offer.
   generic_virtual_assistant: Generic VA role outside target scope.
-  agency_posting: Posting identifies a third-party recruitment or staffing agency rather than the hiring employer.
+  source_url_invalid: Source URL is not a valid HTTPS URL with a hostname.
+  source_blocked: Source domain is explicitly blocked by source policy.
+  source_not_approved: Source is not enabled and approved for this source type.
 
 review_flags:
   source_requires_review: Source domain is explicitly configured for human review.
