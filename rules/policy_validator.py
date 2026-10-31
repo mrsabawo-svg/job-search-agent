@@ -40,7 +40,4 @@ def validate_policy_scope(job: JobRecord) -> list[str]:
         if missing_fields:
             reasons.append("pay_unstated")
 
-    if compensation_policy["reject_unspecified"] and pay_type == "unspecified":
-        reasons.append("pay_unstated")
-
     return list(dict.fromkeys(reasons))
