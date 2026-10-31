@@ -14,7 +14,8 @@ def validate_policy_scope(job: JobRecord) -> list[str]:
     if policy["workplace"] == "remote_only" and job.workplace != "remote":
         reasons.append("not_remote")
 
-    accepted_pay_types = set(policy["compensation"]["accepted_types"])
+    compensation_policy = policy["compensation"]
+    accepted_pay_types = set(compensation_policy["accepted_types"])
     pay_type = getattr(job.compensation.type, "value", job.compensation.type)
     if pay_type not in accepted_pay_types:
         if pay_type == "commission":
@@ -23,5 +24,20 @@ def validate_policy_scope(job: JobRecord) -> list[str]:
             reasons.append("equity_only")
         else:
             reasons.append("pay_unstated")
+    else:
+        required_fields = {
+            "amount": compensation_policy["require_amount"],
+            "currency": compensation_policy["require_currency"],
+            "period": compensation_policy["require_period"],
+        }
+        missing_fields = [
+            field for field, required in required_fields.items()
+            if required and getattr(job.compensation, field) is None
+        ]
+        if missing_fields:
+            reasons.append("pay_unstated")
 
-    return reasons
+    if compensation_policy["reject_unspecified"] and pay_type == "unspecified":
+        reasons.append("pay_unstated")
+
+    return list(dict.fromkeys(reasons))
