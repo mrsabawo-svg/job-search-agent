@@ -23,6 +23,22 @@ def _load_yaml(relative_path: str) -> dict[str, Any]:
     return value
 
 
+def load_job_search_policy() -> dict[str, Any]:
+    policy = _load_yaml("policy/job_search_policy.yaml")
+    if not isinstance(policy.get("version"), int) or policy["version"] < 1:
+        raise PolicyConfigurationError("Job search policy requires a positive integer version")
+    if not isinstance(policy.get("target_categories"), list) or not policy["target_categories"]:
+        raise PolicyConfigurationError("Job search policy requires target_categories")
+    if not isinstance(policy.get("employment_types"), list) or not policy["employment_types"]:
+        raise PolicyConfigurationError("Job search policy requires employment_types")
+    if policy.get("workplace") != "remote_only":
+        raise PolicyConfigurationError("V1 workplace policy must explicitly be remote_only")
+    compensation = policy.get("compensation")
+    if not isinstance(compensation, dict) or not isinstance(compensation.get("accepted_types"), list):
+        raise PolicyConfigurationError("Job search policy requires accepted compensation types")
+    return policy
+
+
 def load_source_policy() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     approved_data = _load_yaml("sources/approved_sources.yaml")
     watchlist_data = _load_yaml("sources/watchlist.yaml")
