@@ -67,9 +67,18 @@ def load_job_search_policy() -> dict[str, Any]:
         raise PolicyConfigurationError("Job search policy requires employment_types")
     if policy.get("workplace") != "remote_only":
         raise PolicyConfigurationError("V1 workplace policy must explicitly be remote_only")
+
     compensation = policy.get("compensation")
-    if not isinstance(compensation, dict) or not isinstance(compensation.get("accepted_types"), list):
+    if not isinstance(compensation, dict):
+        raise PolicyConfigurationError("Job search policy requires compensation settings")
+    accepted_types = compensation.get("accepted_types")
+    if not isinstance(accepted_types, list) or not accepted_types:
         raise PolicyConfigurationError("Job search policy requires accepted compensation types")
+    for setting in ("require_amount", "require_currency", "require_period", "reject_unspecified"):
+        if not isinstance(compensation.get(setting), bool):
+            raise PolicyConfigurationError(f"Compensation policy requires boolean setting: {setting}")
+    if any(not isinstance(value, str) or not value for value in accepted_types):
+        raise PolicyConfigurationError("Accepted compensation types must be non-empty strings")
     return policy
 
 
