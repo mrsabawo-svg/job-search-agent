@@ -47,4 +47,4 @@ def test_compensation_type_outside_policy_is_rejected():
         period=None,
     )
     job = valid_job().model_copy(update={"compensation": commission})
-    assert "pay_unstated" in validate_policy_scope(job)
+    assert "commission_only" in validate_policy_scope(job)
