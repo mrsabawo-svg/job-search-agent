@@ -17,6 +17,11 @@ def validate_policy_scope(job: JobRecord) -> list[str]:
     accepted_pay_types = set(policy["compensation"]["accepted_types"])
     pay_type = getattr(job.compensation.type, "value", job.compensation.type)
     if pay_type not in accepted_pay_types:
-        reasons.append("pay_unstated")
+        if pay_type == "commission":
+            reasons.append("commission_only")
+        elif pay_type == "equity":
+            reasons.append("equity_only")
+        else:
+            reasons.append("pay_unstated")
 
     return reasons
