@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from domain.decision_states import DecisionState
+from policy_loader import load_job_search_policy
 from rules.employer_validator import validate_employer
 from rules.policy_validator import validate_policy_scope
 from rules.risk_validator import detect_risk
@@ -46,7 +47,10 @@ def _build_evidence(job: JobRecord) -> list[Evidence]:
     ]
 
 
-def qualify_job(job: JobRecord, *, policy_version: int = 1) -> ValidationResult:
+def qualify_job(job: JobRecord, *, policy_version: int | None = None) -> ValidationResult:
+    policy = load_job_search_policy()
+    effective_policy_version = policy_version if policy_version is not None else policy["version"]
+
     reasons = []
     review_flags = []
 
@@ -75,5 +79,5 @@ def qualify_job(job: JobRecord, *, policy_version: int = 1) -> ValidationResult:
         reason_codes=reasons,
         review_flags=review_flags,
         evidence=_build_evidence(job),
-        policy_version=policy_version,
+        policy_version=effective_policy_version,
     )
