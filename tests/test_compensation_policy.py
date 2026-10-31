@@ -56,7 +56,7 @@ def test_policy_loader_rejects_non_boolean_compensation_setting(monkeypatch, tmp
     policy_path.write_text(
         "version: 1\ntarget_categories: [software_engineering]\nemployment_types: [full_time]\n"
         "workplace: remote_only\ncompensation:\n  accepted_types: [salary]\n"
-        "  require_amount: yes\n  require_currency: true\n  require_period: true\n"
+        "  require_amount: enabled\n  require_currency: true\n  require_period: true\n"
         "  reject_unspecified: true\n",
         encoding="utf-8",
     )
