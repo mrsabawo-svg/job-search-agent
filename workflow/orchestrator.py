@@ -56,6 +56,8 @@ def qualify_job(job: JobRecord, *, policy_version: int = 1) -> ValidationResult:
 
     reasons += validate_policy_scope(job)
     reasons += validate_employer(job.employer_name, job.employer_domain)
+    if job.employer_domain:
+        review_flags.append("employer_identity_not_independently_verified")
     reasons += detect_risk(job.description_text)
 
     if not job.eligible_locations:
