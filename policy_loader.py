@@ -11,11 +11,45 @@ class PolicyConfigurationError(ValueError):
     """Raised when policy configuration is missing or unsafe to interpret."""
 
 
+class _UniqueKeySafeLoader(yaml.SafeLoader):
+    """Safe YAML loader that rejects duplicate mapping keys."""
+
+
+def _construct_unique_mapping(loader: _UniqueKeySafeLoader, node: yaml.MappingNode, deep: bool = False):
+    mapping = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        try:
+            duplicate = key in mapping
+        except TypeError as exc:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping",
+                node.start_mark,
+                "unhashable mapping key",
+                key_node.start_mark,
+            ) from exc
+        if duplicate:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping",
+                node.start_mark,
+                f"duplicate key {key!r}",
+                key_node.start_mark,
+            )
+        mapping[key] = loader.construct_object(value_node, deep=deep)
+    return mapping
+
+
+_UniqueKeySafeLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    _construct_unique_mapping,
+)
+
+
 def _load_yaml(relative_path: str) -> dict[str, Any]:
     path = ROOT / relative_path
     try:
         with path.open("r", encoding="utf-8") as handle:
-            value = yaml.safe_load(handle)
+            value = yaml.load(handle, Loader=_UniqueKeySafeLoader)
     except (OSError, yaml.YAMLError) as exc:
         raise PolicyConfigurationError(f"Unable to load policy file: {relative_path}") from exc
     if not isinstance(value, dict):
@@ -25,7 +59,7 @@ def _load_yaml(relative_path: str) -> dict[str, Any]:
 
 def load_job_search_policy() -> dict[str, Any]:
     policy = _load_yaml("policy/job_search_policy.yaml")
-    if not isinstance(policy.get("version"), int) or policy["version"] < 1:
+    if not isinstance(policy.get("version"), int) or isinstance(policy.get("version"), bool) or policy["version"] < 1:
         raise PolicyConfigurationError("Job search policy requires a positive integer version")
     if not isinstance(policy.get("target_categories"), list) or not policy["target_categories"]:
         raise PolicyConfigurationError("Job search policy requires target_categories")
