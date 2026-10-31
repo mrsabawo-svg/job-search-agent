@@ -23,15 +23,11 @@ class Compensation(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def validate_accepted_compensation(self):
-        if self.type in (CompensationType.SALARY, CompensationType.HOURLY):
-            missing = [name for name in ("amount", "currency", "period") if getattr(self, name) is None]
-            if missing:
-                raise ValueError("salary/hourly compensation requires amount, currency and period")
-            if self.type == CompensationType.HOURLY and self.period != PayPeriod.HOUR:
-                raise ValueError("hourly compensation must use the hour pay period")
-            if self.type == CompensationType.SALARY and self.period == PayPeriod.HOUR:
-                raise ValueError("salary compensation must use month or year pay period")
+    def validate_period_compatibility(self):
+        if self.type == CompensationType.HOURLY and self.period not in (None, PayPeriod.HOUR):
+            raise ValueError("hourly compensation must use the hour pay period")
+        if self.type == CompensationType.SALARY and self.period == PayPeriod.HOUR:
+            raise ValueError("salary compensation must use month or year pay period")
         return self
 
 
