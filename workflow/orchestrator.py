@@ -12,13 +12,17 @@ def qualify_job(job: JobRecord, *, policy_version: int = 1) -> ValidationResult:
     reasons = []
     review_flags = []
 
-    reasons += validate_source(job.source, str(job.source_url))
+    source_findings = validate_source(job.source, str(job.source_url))
+    review_flags += [code for code in source_findings if code == "source_requires_review"]
+    reasons += [code for code in source_findings if code != "source_requires_review"]
+
     reasons += validate_pay(job.compensation)
     reasons += validate_remote(job.workplace)
     reasons += validate_employer(job.employer_name, job.employer_domain)
     reasons += detect_risk(job.description_text)
 
     reasons = list(dict.fromkeys(reasons))
+    review_flags = list(dict.fromkeys(review_flags))
     decision = DecisionState.REJECT if reasons else DecisionState.REVIEW
 
     return ValidationResult(
