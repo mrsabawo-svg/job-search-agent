@@ -150,3 +150,13 @@ def test_unknown_applicant_geography_is_flagged_for_review():
     result = qualify_job(JobRecord.model_validate(job))
     assert result.decision == DecisionState.REVIEW
     assert "geographic_eligibility_unclear" in result.review_flags
+
+
+
+def test_qualification_result_contains_source_backed_evidence():
+    job = JobRecord.model_validate(sample("valid_jobs.json"))
+    result = qualify_job(job)
+    observed_fields = {item.field for item in result.evidence}
+    assert {"title", "employer_name", "source", "source_url", "workplace", "compensation.type"} <= observed_fields
+    assert all(item.source_url == job.source_url for item in result.evidence)
+    assert all(item.captured_at.tzinfo is not None for item in result.evidence)
