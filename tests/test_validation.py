@@ -30,9 +30,9 @@ def test_commission_crypto_is_rejected():
     assert "crypto_trading_scheme" in result.reason_codes
 
 
-def test_salary_requires_all_pay_fields():
-    with pytest.raises(ValidationError):
-        Compensation.model_validate({"type": "salary", "amount": 80000, "currency": "USD"})
+def test_salary_schema_allows_policy_assessed_missing_fields():
+    compensation = Compensation.model_validate({"type": "salary", "amount": 80000, "currency": "USD"})
+    assert compensation.period is None
 
 
 def test_hourly_pay_requires_hour_period():
