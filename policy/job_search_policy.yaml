@@ -14,8 +14,36 @@ sources:
   employer_ats_only_by_default: true
   approved_source_file: sources/approved_sources.yaml
   watchlist_file: sources/watchlist.yaml
-hard_rejections: [paid_to_apply, commission_only, equity_only, crypto_trading_scheme, network_marketing, vague_remote_data_entry, generic_virtual_assistant, unverifiable_employer]
-human_review_required: [geographic_eligibility_unclear, compensation_conversion_unclear, employer_identity_conflict, application_domain_unverified, security_or_screening_declaration, any_personal_data_submission]
+hard_rejections:
+  - off_domain
+  - pay_unstated
+  - commission_only
+  - equity_only
+  - agency_posting
+  - not_remote
+  - employment_type_not_allowed
+  - employer_unverifiable
+  - paid_to_apply
+  - pay_to_start
+  - dm_only_hiring
+  - whatsapp_hiring
+  - crypto_trading_scheme
+  - network_marketing
+  - vague_data_entry
+  - generic_virtual_assistant
+  - source_url_invalid
+  - source_blocked
+  - source_not_approved
+human_review_required:
+  - source_requires_review
+  - geographic_eligibility_unclear
+  - applicant_location_match_not_assessed
+  - employer_identity_not_independently_verified
+  - compensation_conversion_unclear
+  - employer_identity_conflict
+  - application_domain_unverified
+  - security_or_screening_declaration
+  - any_personal_data_submission
 stop_conditions:
   max_runtime_minutes: 45
   max_sources_per_run: 8
