@@ -13,10 +13,14 @@ rejection_reasons:
   employment_type_not_allowed: Employment type outside policy.
   employer_unverifiable: Employer identity cannot be verified.
   paid_to_apply: Candidate asked to pay to apply.
+  pay_to_start: Candidate is asked to pay a registration, training, onboarding or equipment fee to begin.
+  dm_only_hiring: Hiring process directs applicants to informal direct-message contact.
+  whatsapp_hiring: Hiring process directs applicants to WhatsApp or an equivalent messaging link.
   crypto_trading_scheme: Crypto or investment scheme.
   network_marketing: Multi-level/network marketing.
   vague_data_entry: Vague remote data-entry offer.
   generic_virtual_assistant: Generic VA role outside target scope.
+  agency_posting: Posting identifies a third-party recruitment or staffing agency rather than the hiring employer.
 
 review_flags:
   source_requires_review: Source domain is explicitly configured for human review.
