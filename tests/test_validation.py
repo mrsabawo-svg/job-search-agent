@@ -160,3 +160,10 @@ def test_qualification_result_contains_source_backed_evidence():
     assert {"title", "employer_name", "source", "source_url", "workplace", "compensation.type"} <= observed_fields
     assert all(item.source_url == job.source_url for item in result.evidence)
     assert all(item.captured_at.tzinfo is not None for item in result.evidence)
+
+
+def test_qualification_uses_loaded_policy_version():
+    from policy_loader import load_job_search_policy
+
+    result = qualify_job(JobRecord.model_validate(sample("valid_jobs.json")))
+    assert result.policy_version == load_job_search_policy()["version"]
