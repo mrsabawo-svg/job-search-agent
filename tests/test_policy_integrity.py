@@ -78,7 +78,7 @@ def test_every_declared_hard_rejection_is_implemented_and_documented():
 def test_policy_scope_settings_are_explicit_and_supported():
     policy = load_job_search_policy()
     assert policy["workplace"] == "remote_only"
-    assert policy["compensation"]["required"] is True
+    assert policy["compensation"]["require_amount"] is True
     assert policy["compensation"]["require_currency"] is True
     assert policy["compensation"]["require_period"] is True
     assert policy["compensation"]["reject_unspecified"] is True
