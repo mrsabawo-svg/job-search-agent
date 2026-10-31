@@ -63,3 +63,15 @@ def test_policy_loader_rejects_non_boolean_compensation_setting(monkeypatch, tmp
     monkeypatch.setattr("policy_loader.ROOT", tmp_path)
     with pytest.raises(PolicyConfigurationError):
         load_job_search_policy()
+
+
+def test_unspecified_pay_rejection_is_policy_controlled(monkeypatch):
+    raw = sample_job()
+    raw["compensation"] = {"type": "unspecified"}
+    job = JobRecord.model_validate(raw)
+    policy = load_job_search_policy()
+    monkeypatch.setattr(policy_validator, "load_job_search_policy", lambda: policy)
+    assert "pay_unstated" in policy_validator.validate_policy_scope(job)
+
+    policy["compensation"]["reject_unspecified"] = False
+    assert "pay_unstated" not in policy_validator.validate_policy_scope(job)
