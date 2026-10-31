@@ -26,3 +26,4 @@ review_flags:
   source_requires_review: Source domain is explicitly configured for human review.
   geographic_eligibility_unclear: Job posting does not state eligible countries or regions.
   applicant_location_match_not_assessed: Eligible regions are listed but have not been compared with an explicitly supplied applicant location profile.
+  employer_identity_not_independently_verified: Employer domain syntax is valid but its relationship to the named employer has not been independently verified.
