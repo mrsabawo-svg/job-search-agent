@@ -4,7 +4,7 @@ from typing import Any
 import yaml
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parent
 
 
 class PolicyConfigurationError(ValueError):
