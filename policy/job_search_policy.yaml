@@ -5,8 +5,8 @@ target_categories: [backend_engineering, frontend_engineering, full_stack_engine
 employment_types: [full_time, contract]
 workplace: remote_only
 compensation:
-  required: true
   accepted_types: [salary, hourly]
+  require_amount: true
   require_currency: true
   require_period: true
   reject_unspecified: true
