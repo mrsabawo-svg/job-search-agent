@@ -36,9 +36,12 @@ def load_source_policy() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
             raise PolicyConfigurationError("Each approved source requires an id")
         if not isinstance(entry.get("enabled"), bool):
             raise PolicyConfigurationError(f"Source {entry.get('id')} requires an enabled boolean")
-        if not isinstance(entry.get("domains"), list) or not entry["domains"]:
-            raise PolicyConfigurationError(f"Source {entry.get('id')} requires at least one domain")
-        if any(not isinstance(domain, str) or not domain.strip() for domain in entry["domains"]):
+        domains = entry.get("domains", [])
+        if not isinstance(domains, list):
+            raise PolicyConfigurationError(f"Source {entry.get('id')} domains must be a list")
+        if entry["enabled"] and not domains:
+            raise PolicyConfigurationError(f"Enabled source {entry.get('id')} requires at least one domain")
+        if any(not isinstance(domain, str) or not domain.strip() for domain in domains):
             raise PolicyConfigurationError(f"Source {entry.get('id')} contains an invalid domain")
 
     for entry in watchlist:
