@@ -1,10 +1,49 @@
+from datetime import datetime, timezone
+
 from domain.decision_states import DecisionState
 from rules.employer_validator import validate_employer
 from rules.policy_validator import validate_policy_scope
 from rules.risk_validator import detect_risk
 from rules.source_validator import validate_source
 from schema.job_record import JobRecord
-from schema.validation_result import ValidationResult
+from schema.validation_result import Evidence, ValidationResult
+
+
+def _build_evidence(job: JobRecord) -> list[Evidence]:
+    captured_at = datetime.now(timezone.utc)
+    observations = [
+        ("job_id", job.job_id),
+        ("title", job.title),
+        ("employer_name", job.employer_name),
+        ("source", job.source.value),
+        ("source_url", str(job.source_url)),
+        ("category", job.category.value),
+        ("employment_type", job.employment_type),
+        ("workplace", job.workplace),
+        ("compensation.type", job.compensation.type.value),
+    ]
+    if job.employer_domain:
+        observations.append(("employer_domain", job.employer_domain))
+    if job.eligible_locations:
+        observations.append(("eligible_locations", ", ".join(job.eligible_locations)))
+    if job.compensation.amount is not None:
+        observations.append(("compensation.amount", str(job.compensation.amount)))
+    if job.compensation.currency:
+        observations.append(("compensation.currency", job.compensation.currency))
+    if job.compensation.period:
+        observations.append(("compensation.period", job.compensation.period.value))
+    if job.description_text.strip():
+        observations.append(("description_text", job.description_text.strip()))
+
+    return [
+        Evidence(
+            field=field,
+            value=value,
+            source_url=job.source_url,
+            captured_at=captured_at,
+        )
+        for field, value in observations
+    ]
 
 
 def qualify_job(job: JobRecord, *, policy_version: int = 1) -> ValidationResult:
@@ -33,5 +72,6 @@ def qualify_job(job: JobRecord, *, policy_version: int = 1) -> ValidationResult:
         decision=decision,
         reason_codes=reasons,
         review_flags=review_flags,
+        evidence=_build_evidence(job),
         policy_version=policy_version,
     )
