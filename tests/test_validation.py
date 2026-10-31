@@ -132,3 +132,21 @@ def test_application_package_cannot_carry_approval_authority():
             "human_approved": True,
             "submission_authorized": True,
         })
+
+
+
+def test_unapproved_source_is_rejected_by_orchestrator():
+    job = sample("valid_jobs.json")
+    job["source"] = "other"
+    job["source_url"] = "https://unapproved.example/jobs/1"
+    result = qualify_job(JobRecord.model_validate(job))
+    assert result.decision == DecisionState.REJECT
+    assert "source_not_approved" in result.reason_codes
+
+
+def test_unknown_applicant_geography_is_flagged_for_review():
+    job = sample("valid_jobs.json")
+    job["eligible_locations"] = []
+    result = qualify_job(JobRecord.model_validate(job))
+    assert result.decision == DecisionState.REVIEW
+    assert "geographic_eligibility_unclear" in result.review_flags
