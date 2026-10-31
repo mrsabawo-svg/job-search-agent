@@ -12,4 +12,4 @@ class StopLimits:
     max_llm_calls:int=100
     max_llm_cost_usd:float=2.0
 def budget_exhausted(*,discovery_attempts:int,candidates:int,validation_attempts:int,application_attempts:int,limits:StopLimits=StopLimits())->bool:
-    return discovery_attempts>=limits.max_discovery_attempts or candidates>=limits.max_unique_candidates or validation_attempts>=limits.max_validation_attempts or application_attempts>=limits.max_application_attempts
+    return discovery_attempts>=limits.max_discovery_attempts or candidates>=limits.max_unique_candidates or validation_attempts>=limits.max_validation_attempts or application_attempts>limits.max_application_attempts
