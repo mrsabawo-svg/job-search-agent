@@ -6,7 +6,8 @@ def validate_policy_scope(job: JobRecord) -> list[str]:
     policy = load_job_search_policy()
     reasons = []
 
-    if job.category.value not in policy["target_categories"]:
+    category_value = getattr(job.category, "value", job.category)
+    if category_value not in policy["target_categories"]:
         reasons.append("off_domain")
     if job.employment_type not in policy["employment_types"]:
         reasons.append("employment_type_not_allowed")
@@ -14,7 +15,8 @@ def validate_policy_scope(job: JobRecord) -> list[str]:
         reasons.append("not_remote")
 
     accepted_pay_types = set(policy["compensation"]["accepted_types"])
-    if job.compensation.type.value not in accepted_pay_types:
+    pay_type = getattr(job.compensation.type, "value", job.compensation.type)
+    if pay_type not in accepted_pay_types:
         reasons.append("pay_unstated")
 
     return reasons
