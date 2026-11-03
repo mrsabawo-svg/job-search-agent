@@ -7,6 +7,23 @@ from rules import source_validator
 from rules.source_validator import validate_source
 
 
+def write_source_policy_root(root, approved_sources, *, approved_path="sources/approved_sources.yaml"):
+    (root / "policy").mkdir(parents=True, exist_ok=True)
+    (root / "sources").mkdir(parents=True, exist_ok=True)
+    (root / "policy" / "job_search_policy.yaml").write_text(
+        "version: 1\\n"
+        "target_categories: [software_engineering]\\n"
+        "employment_types: [full_time]\\n"
+        "workplace: remote_only\\n"
+        "compensation: {accepted_types: [salary], require_amount: true, require_currency: true, require_period: true, reject_unspecified: true}\\n"
+        f"sources: {{employer_ats_only_by_default: true, approved_source_file: '{approved_path}', watchlist_file: 'sources/watchlist.yaml'}}\\n",
+        encoding="utf-8",
+    )
+    (root / approved_path).parent.mkdir(parents=True, exist_ok=True)
+    (root / approved_path).write_text(approved_sources, encoding="utf-8")
+    (root / "sources" / "watchlist.yaml").write_text("watchlist: []\\n", encoding="utf-8")
+
+
 def test_enabled_greenhouse_source_and_host_are_accepted():
     assert validate_source(
         SourceType.GREENHOUSE,
