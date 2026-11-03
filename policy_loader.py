@@ -79,6 +79,15 @@ def load_job_search_policy() -> dict[str, Any]:
             raise PolicyConfigurationError(f"Compensation policy requires boolean setting: {setting}")
     if any(not isinstance(value, str) or not value for value in accepted_types):
         raise PolicyConfigurationError("Accepted compensation types must be non-empty strings")
+
+    sources = policy.get("sources")
+    if not isinstance(sources, dict):
+        raise PolicyConfigurationError("Job search policy requires source settings")
+    if not isinstance(sources.get("employer_ats_only_by_default"), bool):
+        raise PolicyConfigurationError("Source policy requires employer_ats_only_by_default boolean")
+    for setting in ("approved_source_file", "watchlist_file"):
+        if not isinstance(sources.get(setting), str) or not sources[setting]:
+            raise PolicyConfigurationError(f"Source policy requires {setting}")
     return policy
 
 
@@ -90,18 +99,27 @@ def load_source_policy() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     if not isinstance(approved, list) or not isinstance(watchlist, list):
         raise PolicyConfigurationError("Source policy requires approved_sources and watchlist lists")
 
+    seen_ids = set()
     for entry in approved:
-        if not isinstance(entry, dict) or not isinstance(entry.get("id"), str):
-            raise PolicyConfigurationError("Each approved source requires an id")
+        if not isinstance(entry, dict) or not isinstance(entry.get("id"), str) or not entry["id"].strip():
+            raise PolicyConfigurationError("Each approved source requires a non-empty id")
+        source_id = entry["id"]
+        if source_id in seen_ids:
+            raise PolicyConfigurationError(f"Duplicate approved source id: {source_id}")
+        seen_ids.add(source_id)
+        if entry.get("type") not in {"employer_ats", "job_board"}:
+            raise PolicyConfigurationError(f"Source {source_id} has an invalid type")
         if not isinstance(entry.get("enabled"), bool):
-            raise PolicyConfigurationError(f"Source {entry.get('id')} requires an enabled boolean")
+            raise PolicyConfigurationError(f"Source {source_id} requires an enabled boolean")
+        if entry["type"] == "job_board" and not isinstance(entry.get("explicit_approval"), bool):
+            raise PolicyConfigurationError(f"Job board {source_id} requires an explicit_approval boolean")
         domains = entry.get("domains", [])
         if not isinstance(domains, list):
-            raise PolicyConfigurationError(f"Source {entry.get('id')} domains must be a list")
+            raise PolicyConfigurationError(f"Source {source_id} domains must be a list")
         if entry["enabled"] and not domains:
-            raise PolicyConfigurationError(f"Enabled source {entry.get('id')} requires at least one domain")
+            raise PolicyConfigurationError(f"Enabled source {source_id} requires at least one domain")
         if any(not isinstance(domain, str) or not domain.strip() for domain in domains):
-            raise PolicyConfigurationError(f"Source {entry.get('id')} contains an invalid domain")
+            raise PolicyConfigurationError(f"Source {source_id} contains an invalid domain")
 
     for entry in watchlist:
         if not isinstance(entry, dict) or not isinstance(entry.get("domain"), str):
