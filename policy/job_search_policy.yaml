@@ -10,6 +10,15 @@ compensation:
   require_currency: true
   require_period: true
   reject_unspecified: true
+geography:
+  require_country_or_region_statement: true
+  unknown_eligibility: REVIEW
+employer:
+  require_verifiable_identity: true
+  require_official_domain_or_approved_ats: true
+role:
+  require_target_category_match: true
+  unrelated_roles: REJECT
 sources:
   employer_ats_only_by_default: true
   approved_source_file: sources/approved_sources.yaml
