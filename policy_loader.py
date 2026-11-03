@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 import yaml
@@ -91,9 +91,19 @@ def load_job_search_policy() -> dict[str, Any]:
     return policy
 
 
+def _policy_relative_path(value: str, setting: str) -> str:
+    path = PurePosixPath(value)
+    if path.is_absolute() or not path.parts or ".." in path.parts:
+        raise PolicyConfigurationError(f"Source policy {setting} must be a safe repository-relative path")
+    return str(path)
+
+
 def load_source_policy() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    approved_data = _load_yaml("sources/approved_sources.yaml")
-    watchlist_data = _load_yaml("sources/watchlist.yaml")
+    source_settings = load_job_search_policy()["sources"]
+    approved_path = _policy_relative_path(source_settings["approved_source_file"], "approved_source_file")
+    watchlist_path = _policy_relative_path(source_settings["watchlist_file"], "watchlist_file")
+    approved_data = _load_yaml(approved_path)
+    watchlist_data = _load_yaml(watchlist_path)
     approved = approved_data.get("approved_sources")
     watchlist = watchlist_data.get("watchlist")
     if not isinstance(approved, list) or not isinstance(watchlist, list):
