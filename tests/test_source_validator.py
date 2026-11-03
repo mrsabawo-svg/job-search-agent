@@ -1,6 +1,9 @@
 import pytest
 
+import policy_loader
 from domain.source_types import SourceType
+from policy_loader import PolicyConfigurationError
+from rules import source_validator
 from rules.source_validator import validate_source
 
 
@@ -51,3 +54,70 @@ def test_domain_suffix_spoofing_does_not_match_approved_host():
         SourceType.GREENHOUSE,
         "https://greenhouse.io.attacker.example/job/123",
     ) == ["source_not_approved"]
+
+
+def test_enabled_job_board_requires_explicit_approval(monkeypatch):
+    monkeypatch.setattr(source_validator, "load_job_search_policy", lambda: {
+        "sources": {"employer_ats_only_by_default": True}
+    })
+    monkeypatch.setattr(source_validator, "load_source_policy", lambda: (
+        [{
+            "id": "remoteok",
+            "type": "job_board",
+            "enabled": True,
+            "explicit_approval": False,
+            "domains": ["remoteok.com"],
+        }],
+        [],
+    ))
+    assert validate_source(
+        SourceType.REMOTE_OK,
+        "https://remoteok.com/remote-jobs/123",
+    ) == ["source_not_approved"]
+
+
+def test_explicitly_approved_enabled_job_board_is_allowed(monkeypatch):
+    monkeypatch.setattr(source_validator, "load_job_search_policy", lambda: {
+        "sources": {"employer_ats_only_by_default": True}
+    })
+    monkeypatch.setattr(source_validator, "load_source_policy", lambda: (
+        [{
+            "id": "remoteok",
+            "type": "job_board",
+            "enabled": True,
+            "explicit_approval": True,
+            "domains": ["remoteok.com"],
+        }],
+        [],
+    ))
+    assert validate_source(
+        SourceType.REMOTE_OK,
+        "https://remoteok.com/remote-jobs/123",
+    ) == []
+
+
+def test_source_registry_rejects_duplicate_ids(tmp_path, monkeypatch):
+    (tmp_path / "sources").mkdir()
+    (tmp_path / "sources" / "approved_sources.yaml").write_text(
+        "approved_sources:\n"
+        "  - {id: greenhouse, type: employer_ats, enabled: true, domains: [greenhouse.io]}\n"
+        "  - {id: greenhouse, type: employer_ats, enabled: true, domains: [boards.greenhouse.io]}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "sources" / "watchlist.yaml").write_text("watchlist: []\n", encoding="utf-8")
+    monkeypatch.setattr(policy_loader, "ROOT", tmp_path)
+    with pytest.raises(PolicyConfigurationError, match="Duplicate approved source id"):
+        policy_loader.load_source_policy()
+
+
+def test_job_board_registry_requires_explicit_approval_setting(tmp_path, monkeypatch):
+    (tmp_path / "sources").mkdir()
+    (tmp_path / "sources" / "approved_sources.yaml").write_text(
+        "approved_sources:\n"
+        "  - {id: remoteok, type: job_board, enabled: false, domains: []}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "sources" / "watchlist.yaml").write_text("watchlist: []\n", encoding="utf-8")
+    monkeypatch.setattr(policy_loader, "ROOT", tmp_path)
+    with pytest.raises(PolicyConfigurationError, match="explicit_approval"):
+        policy_loader.load_source_policy()
