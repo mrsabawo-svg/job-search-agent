@@ -1,7 +1,0 @@
-rules:
-  remote: {required: true, allowed_values: [remote], hybrid_is_eligible: false, onsite_is_eligible: false}
-  employment_type: {allowed: [full_time, contract], reject_internship_by_default: true, reject_part_time_by_default: true}
-  compensation: {required_fields: [type, amount, currency, period], accepted_types: [salary, hourly], minimum_amount: null}
-  geography: {require_country_or_region_statement: true, unknown_eligibility: REVIEW}
-  employer: {require_verifiable_identity: true, require_official_domain_or_approved_ats: true}
-  role: {require_target_category_match: true, unrelated_roles: REJECT}
