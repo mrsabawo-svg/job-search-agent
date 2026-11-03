@@ -110,7 +110,12 @@ def test_source_registry_path_cannot_escape_repository_root(tmp_path, monkeypatc
     write_source_policy_root(
         tmp_path,
         "approved_sources: []\n",
-        approved_path="../outside.yaml",
+    )
+    policy_path = tmp_path / "policy" / "job_search_policy.yaml"
+    policy_text = policy_path.read_text(encoding="utf-8")
+    policy_path.write_text(
+        policy_text.replace("approved_source_file: 'sources/approved_sources.yaml'", "approved_source_file: '../outside.yaml'"),
+        encoding="utf-8",
     )
     monkeypatch.setattr(policy_loader, "ROOT", tmp_path)
     with pytest.raises(PolicyConfigurationError, match="safe repository-relative path"):
