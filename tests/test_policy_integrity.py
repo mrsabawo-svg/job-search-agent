@@ -83,3 +83,24 @@ def test_policy_scope_settings_are_explicit_and_supported():
     assert policy["compensation"]["require_period"] is True
     assert policy["compensation"]["reject_unspecified"] is True
     assert set(policy["compensation"]["accepted_types"]) == {"salary", "hourly"}
+
+
+def test_canonical_policy_contains_merged_eligibility_requirements():
+    policy = load_job_search_policy()
+    assert policy["geography"] == {
+        "require_country_or_region_statement": True,
+        "unknown_eligibility": "REVIEW",
+    }
+    assert policy["employer"] == {
+        "require_verifiable_identity": True,
+        "require_official_domain_or_approved_ats": True,
+    }
+    assert policy["role"] == {
+        "require_target_category_match": True,
+        "unrelated_roles": "REJECT",
+    }
+
+
+def test_legacy_eligibility_policy_file_is_not_present():
+    root = Path(__file__).resolve().parents[1]
+    assert not (root / "policy" / "eligibility_rules.yaml").exists()
