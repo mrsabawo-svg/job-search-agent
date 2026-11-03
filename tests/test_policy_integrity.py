@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 import policy_loader
-from policy_loader import PolicyConfigurationError, _load_yaml, load_job_search_policy
+from policy_loader import PolicyConfigurationError, _load_yaml, load_job_search_policy, load_decision_catalogue, validate_decision_codes
 from rules.risk_validator import PATTERNS
 
 
@@ -104,3 +104,26 @@ def test_canonical_policy_contains_merged_eligibility_requirements():
 def test_legacy_eligibility_policy_file_is_not_present():
     root = Path(__file__).resolve().parents[1]
     assert not (root / "policy" / "eligibility_rules.yaml").exists()
+
+
+
+def test_decision_catalogue_is_complete_and_policy_authorized():
+    policy = load_job_search_policy()
+    catalogue = load_decision_catalogue()
+    assert set(policy['hard_rejections']) <= set(catalogue['rejection_reasons'])
+    assert set(policy['human_review_required']) <= set(catalogue['review_flags'])
+    assert not (set(policy['hard_rejections']) & set(policy['human_review_required']))
+
+
+def test_runtime_decision_codes_must_be_authorized():
+    validate_decision_codes(['not_remote'], ['geographic_eligibility_unclear'])
+    with pytest.raises(PolicyConfigurationError, match='not authorized'):
+        validate_decision_codes(['unrecognized_rejection'], [])
+    with pytest.raises(PolicyConfigurationError, match='not authorized'):
+        validate_decision_codes([], ['unrecognized_review_flag'])
+
+
+def test_decision_catalogue_requires_nonempty_descriptions():
+    catalogue = load_decision_catalogue()
+    assert all(value.strip() for value in catalogue['rejection_reasons'].values())
+    assert all(value.strip() for value in catalogue['review_flags'].values())
