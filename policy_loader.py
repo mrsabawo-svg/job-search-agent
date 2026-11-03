@@ -138,3 +138,75 @@ def load_source_policy() -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
             raise PolicyConfigurationError("Watchlist status must be blocked or review")
 
     return approved, watchlist
+
+def load_decision_catalogue() -> dict[str, dict[str, str]]:
+    """Load and validate the policy-authorized rejection and review codes."""
+    policy = load_job_search_policy()
+    catalogue = _load_yaml("policy/rejection_reasons.yaml")
+    rejection_reasons = catalogue.get("rejection_reasons")
+    review_flags = catalogue.get("review_flags")
+    if not isinstance(rejection_reasons, dict) or not isinstance(review_flags, dict):
+        raise PolicyConfigurationError(
+            "Decision catalogue requires rejection_reasons and review_flags mappings"
+        )
+
+    for group_name, entries in (
+        ("rejection_reasons", rejection_reasons),
+        ("review_flags", review_flags),
+    ):
+        for code, description in entries.items():
+            if not isinstance(code, str) or not code.strip():
+                raise PolicyConfigurationError(f"{group_name} contains an invalid code")
+            if not isinstance(description, str) or not description.strip():
+                raise PolicyConfigurationError(f"Decision code {code} requires a description")
+
+    hard_rejections = policy.get("hard_rejections")
+    human_review_required = policy.get("human_review_required")
+    for setting, codes in (
+        ("hard_rejections", hard_rejections),
+        ("human_review_required", human_review_required),
+    ):
+        if not isinstance(codes, list) or any(
+            not isinstance(code, str) or not code.strip() for code in codes
+        ):
+            raise PolicyConfigurationError(f"Policy requires a valid {setting} list")
+        if len(codes) != len(set(codes)):
+            raise PolicyConfigurationError(f"Policy {setting} contains duplicate codes")
+
+    hard_set = set(hard_rejections)
+    review_set = set(human_review_required)
+    if hard_set & review_set:
+        raise PolicyConfigurationError("A decision code cannot be both rejection and review")
+    if not hard_set <= set(rejection_reasons):
+        raise PolicyConfigurationError("Hard rejection policy references undocumented codes")
+    if not review_set <= set(review_flags):
+        raise PolicyConfigurationError("Human review policy references undocumented flags")
+
+    return {
+        "rejection_reasons": rejection_reasons,
+        "review_flags": review_flags,
+    }
+
+
+def validate_decision_codes(reason_codes: list[str], review_flags: list[str]) -> None:
+    """Reject runtime findings that are not explicitly authorized by policy."""
+    policy = load_job_search_policy()
+    catalogue = load_decision_catalogue()
+    hard_rejections = set(policy["hard_rejections"])
+    human_review_required = set(policy["human_review_required"])
+
+    unknown_reasons = set(reason_codes) - hard_rejections
+    unknown_flags = set(review_flags) - human_review_required
+    if unknown_reasons:
+        raise PolicyConfigurationError(
+            f"Runtime emitted rejection codes not authorized by policy: {sorted(unknown_reasons)}"
+        )
+    if unknown_flags:
+        raise PolicyConfigurationError(
+            f"Runtime emitted review flags not authorized by policy: {sorted(unknown_flags)}"
+        )
+    if set(reason_codes) - set(catalogue["rejection_reasons"]):
+        raise PolicyConfigurationError("Runtime emitted undocumented rejection codes")
+    if set(review_flags) - set(catalogue["review_flags"]):
+        raise PolicyConfigurationError("Runtime emitted undocumented review flags")
+
