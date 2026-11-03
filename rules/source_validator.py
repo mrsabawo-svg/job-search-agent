@@ -1,7 +1,7 @@
 from urllib.parse import urlsplit
 
 from domain.source_types import SourceType
-from policy_loader import load_source_policy
+from policy_loader import load_job_search_policy, load_source_policy
 
 
 def _host_matches(host: str, domain: str) -> bool:
@@ -11,6 +11,7 @@ def _host_matches(host: str, domain: str) -> bool:
 
 
 def validate_source(source: SourceType, source_url: str) -> list[str]:
+    policy = load_job_search_policy()
     approved, watchlist = load_source_policy()
     parsed = urlsplit(str(source_url))
     host = (parsed.hostname or "").lower().rstrip(".")
@@ -23,10 +24,16 @@ def validate_source(source: SourceType, source_url: str) -> list[str]:
                 return ["source_blocked"]
             return ["source_requires_review"]
 
-    for entry in approved:
-        if entry["id"] != source.value or not entry["enabled"]:
-            continue
-        if any(_host_matches(host, domain) for domain in entry["domains"]):
-            return []
+    source_id = source.value
+    matching = next((entry for entry in approved if entry["id"] == source_id), None)
+    if matching is None or not matching["enabled"]:
+        return ["source_not_approved"]
 
-    return ["source_not_approved"]
+    if matching["type"] == "job_board" and policy["sources"]["employer_ats_only_by_default"]:
+        if not matching["explicit_approval"]:
+            return ["source_not_approved"]
+
+    if not any(_host_matches(host, domain) for domain in matching["domains"]):
+        return ["source_not_approved"]
+
+    return []
