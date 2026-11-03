@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from domain.decision_states import DecisionState
-from policy_loader import load_job_search_policy
+from policy_loader import load_job_search_policy, validate_decision_codes
 from rules.employer_validator import validate_employer
 from rules.policy_validator import validate_policy_scope
 from rules.risk_validator import detect_risk
@@ -71,6 +71,7 @@ def qualify_job(job: JobRecord, *, policy_version: int | None = None) -> Validat
 
     reasons = list(dict.fromkeys(reasons))
     review_flags = list(dict.fromkeys(review_flags))
+    validate_decision_codes(reasons, review_flags)
     decision = DecisionState.REJECT if reasons else DecisionState.REVIEW
 
     return ValidationResult(
