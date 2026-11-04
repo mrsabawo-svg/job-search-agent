@@ -59,9 +59,10 @@ def _load_yaml(relative_path: str) -> dict[str, Any]:
 
 def load_job_search_policy() -> dict[str, Any]:
     policy = _load_yaml("policy/job_search_policy.yaml")
-    if policy.get("status") not in {"draft", "approved", "retired"}:
+    status = policy.get("status", "draft")
+    if status not in {"draft", "approved", "retired"}:
         raise PolicyConfigurationError("Job search policy status must be draft, approved or retired")
-    if policy["status"] == "approved":
+    if status == "approved":
         approval = policy.get("approval")
         required_approval_fields = ("approved_on", "basis", "scope", "constraints")
         if not isinstance(approval, dict) or any(
