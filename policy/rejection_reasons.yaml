@@ -29,3 +29,8 @@ review_flags:
   geographic_eligibility_unclear: Job posting does not state eligible countries or regions.
   applicant_location_match_not_assessed: Eligible regions are listed but have not been compared with an explicitly supplied applicant location profile.
   employer_identity_not_independently_verified: Employer domain syntax is valid but its relationship to the named employer has not been independently verified.
+  compensation_conversion_unclear: Compensation cannot be reliably normalized or compared without an explicit conversion assumption.
+  employer_identity_conflict: Available evidence contains conflicting claims about the named employer or its domain.
+  application_domain_unverified: The application destination has not been verified as controlled by the employer or an approved ATS.
+  security_or_screening_declaration: The application requests a security, background-screening, or other declaration requiring human assessment.
+  any_personal_data_submission: Personal data would be transmitted and requires explicit human review before submission.
