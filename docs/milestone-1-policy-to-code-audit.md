@@ -3,7 +3,7 @@
 **Audit date:** 2026-11-04  
 **Policy version:** 1  
 **Canonical policy:** `policy/job_search_policy.yaml`  
-**Status:** Engineering implementation complete; final CI passed; policy owner sign-off pending.
+**Status:** Engineering implementation complete; policy v1 approved for bounded opportunity qualification.
 
 ## Executive result
 
@@ -66,6 +66,6 @@ Run budgets now have a concrete in-memory execution boundary in `workflow/run_ex
 
 The engineering implementation and current qualification execution-boundary integration are complete. Final CI passed for the final audit commit; see the run linked in the milestone completion report.
 
-The policy remains `draft` intentionally. This audit does not grant policy approval on behalf of the policy owner. Before treating the policy as operationally approved, the policy owner must review and approve its eligibility boundaries and source registry. Milestone 2 should begin only after that policy sign-off.
+Policy v1 was approved on 2026-11-04 following review of the canonical eligibility rules, source registry, watchlist, decision catalogues, runtime uncertainty handling and Milestone 1 traceability evidence. The approval is deliberately limited to opportunity qualification. It does not authorize browser execution, personal-data submission or application attempts.
 
-The current boundary is process-local and covers source, discovery, candidate and validation callbacks routed through `RunExecutor`. No live discovery adapter, browser execution or application submission path exists in Milestone 1. Future adapters must use this gate. Durable counters, restart recovery and cross-process enforcement belong to the persistence/workflow milestones.
+The current boundary is process-local and covers source, discovery, candidate and validation callbacks routed through `RunExecutor`. No live discovery adapter, browser execution or application submission path exists in Milestone 1. Future adapters must use this gate. Durable counters, restart recovery and cross-process enforcement belong to the persistence/workflow milestones. The approved policy metadata records the approval date, basis, scope and constraints; the loader rejects an approved policy without a complete approval record.
