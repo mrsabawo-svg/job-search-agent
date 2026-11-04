@@ -13,9 +13,11 @@ compensation:
 geography:
   require_country_or_region_statement: true
   unknown_eligibility: REVIEW
+  applicant_location_match_without_profile: REVIEW
 employer:
   require_verifiable_identity: true
   require_official_domain_or_approved_ats: true
+  identity_relationship_unverified: REVIEW
 role:
   require_target_category_match: true
   unrelated_roles: REJECT
