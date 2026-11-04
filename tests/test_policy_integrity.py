@@ -134,15 +134,19 @@ def test_decision_catalogue_requires_nonempty_descriptions():
 
 
 
-def test_role_policy_is_runtime_consumed_and_rejects_out_of_scope_roles():
+def test_role_policy_is_runtime_consumed_and_rejects_out_of_scope_roles(monkeypatch):
+    import json
+    from rules import policy_validator
     from rules.policy_validator import validate_policy_scope
     from schema.job_record import JobRecord
-    import json
 
     root = Path(__file__).resolve().parents[1]
     raw = json.loads((root / "data/samples/valid_jobs.json").read_text())[0]
-    raw["category"] = "marketing"
-    assert "off_domain" in validate_policy_scope(JobRecord.model_validate(raw))
+    job = JobRecord.model_validate(raw)
+    policy = load_job_search_policy()
+    policy["target_categories"] = ["backend_engineering"]
+    monkeypatch.setattr(policy_validator, "load_job_search_policy", lambda: policy)
+    assert "off_domain" in validate_policy_scope(job)
 
 
 def test_policy_declares_only_implemented_runtime_rejection_codes():
