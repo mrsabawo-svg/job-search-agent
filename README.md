@@ -21,7 +21,7 @@ There is no second eligibility policy file. Changes to eligibility requirements 
 - One policy-scope validator owns category, employment, remote-work and compensation eligibility; source, employer, geography and risk validators own their separate evidence domains.
 
 ## Milestone 1 status
-The policy-to-code audit and remaining release gate are recorded in [Milestone 1 traceability audit](docs/milestone-1-policy-to-code-audit.md). The policy remains in draft until execution-boundary stop-condition integration is verified.
+The policy-to-code audit and release evidence are recorded in [Milestone 1 traceability audit](docs/milestone-1-policy-to-code-audit.md). Run-level source, discovery, candidate and validation callbacks are gated by `workflow.run_executor.RunExecutor`; the existing qualification path uses its validation gate. Counters are in-memory only. No browser or application execution is available in Milestone 1, and application attempts remain prohibited. The policy remains in draft pending final integrated CI and acceptance review.
 
 ## Architecture
 - [Candidate Competency and Engineering Fit Architecture](docs/architecture/candidate_competency_model.md) — balanced assessment across technical capability, engineering practice and professional engineering behaviours, grounded in evidence.
@@ -29,7 +29,7 @@ The policy-to-code audit and remaining release gate are recorded in [Milestone 1
 - The competency architecture does not change or interrupt the active Milestone 1 repair sequence.
 
 ## Safety
-This milestone qualifies opportunities only. No application submission, legal declarations, or applicant-data disclosure. Human review and explicit approval are mandatory before any future submission feature. Run budgets are defined in the canonical policy and must be checked through `workflow.stop_conditions.enforce_run_limits` before any future execution-side effect.
+This milestone qualifies opportunities only. No application submission, legal declarations, or applicant-data disclosure. Human review and explicit approval are mandatory before any future submission feature. Run budgets are defined in the canonical policy and enforced through `workflow.run_executor.RunExecutor` for supported run operations. Future discovery adapters must use this boundary; durable counters and restart recovery belong to later milestones.
 
 ## Setup
 Python 3.11+: `pip install -r requirements.txt` then `pytest -q`.
