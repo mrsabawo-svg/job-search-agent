@@ -3,13 +3,13 @@
 **Audit date:** 2026-11-04  
 **Policy version:** 1  
 **Canonical policy:** `policy/job_search_policy.yaml`  
-**Status:** Audit performed; Milestone 1 remains gated.
+**Status:** Execution-boundary integration implemented; final CI and acceptance review pending.
 
 ## Executive result
 
 The eligibility policy, runtime validators, decision catalogue and regression tests are now aligned for the currently implemented qualification path. No runtime path emits `ACCEPT`; qualification produces `REJECT` for policy hard failures and `REVIEW` otherwise.
 
-The remaining acceptance blocker is execution-boundary integration of run budgets. The repository does not yet contain a discovery/run executor or browser/application side-effect entrypoint. The strict `enforce_run_limits` guard is implemented and tested, but there is not yet a production workflow boundary that invokes it. This must be wired when the workflow execution layer is introduced; do not treat the guard API alone as proof that every future operation is protected.
+Run budgets now have a concrete in-memory execution boundary in `workflow/run_executor.py`. Its `execute` method checks canonical stop limits before source, discovery, candidate and validation callbacks; it reserves attempts before invoking callbacks so failures consume budget. `RunExecutor.qualify_job` routes the existing deterministic qualifier through the validation gate. Browser and application execution are explicitly unavailable in Milestone 1, and application attempts remain prohibited. Counters are process-local; durable counters, restart recovery and distributed coordination are deferred to later milestones. Future discovery adapters must use this executor; no live source adapter exists yet.
 
 ## Responsibility traceability
 
@@ -25,7 +25,7 @@ The remaining acceptance blocker is execution-boundary integration of run budget
 | Approved sources and watchlist | `rules/source_validator.py` | Source allow/deny, host matching, watchlist and path safety tests |
 | Hiring-risk patterns | `rules/risk_validator.py` | Risk-pattern tests and catalogue parity test |
 | Decision authorization | `policy_loader.py` | Catalogue completeness and runtime-code authorization tests |
-| Run budgets | `workflow/stop_conditions.py` | Limit boundary, malformed counter, strict policy schema and guard exception tests |
+| Stop-limit policy | `workflow/stop_conditions.py` | Limit boundary, malformed counter, strict policy schema and guard exception tests |\n| Run execution gate | `workflow/run_executor.py` | Exhausted budgets block callbacks; failed attempts consume budget; qualification uses validation gate |
 
 ## M1-POL-05 — Validator consolidation
 
@@ -37,17 +37,17 @@ The remaining acceptance blocker is execution-boundary integration of run budget
 
 ## M1-POL-06 — Stop-condition hardening
 
-**Guard implementation complete; runtime integration pending.**
+**Guard and current validation execution-boundary integration complete.**
 - Stop limits are loaded from the canonical policy with exact-key, type, finite-value and non-negative checks.
 - V1 policy cannot enable application attempts; the maximum remains zero.
 - Counters reject booleans, negative values and non-integers.
 - Runtime timestamps must be timezone-aware.
 - `enforce_run_limits` raises `StopConditionReached` before a caller proceeds when any budget is exhausted.
-- There is currently no production run executor or browser/application side-effect boundary to call this guard. The workflow milestone must make guard invocation mandatory at each such boundary and test that no operation proceeds after a stop condition.
+- `workflow/run_executor.py` invokes the guard before source, discovery, candidate and validation callbacks, then reserves the attempt before callback execution. Failed callbacks still consume the reserved attempt.\n- `RunExecutor.qualify_job` routes the existing qualification path through the validation budget gate.\n- Browser execution is unavailable in Milestone 1; application execution is blocked unconditionally. No browser or application side-effect boundary is implemented here.\n- Counters are in-memory and run-scoped. Durable persistence and restart recovery remain later-milestone responsibilities. Future adapters must use `RunExecutor.execute`.
 
 ## M1-POL-07 — Full policy-to-code regression audit
 
-**Audit complete; one integration gate remains.**
+**Audit and current execution-boundary integration complete; final CI and acceptance review pending.**
 - Every active hard-rejection code is implemented and documented.
 - Runtime rejection codes are checked against the policy hard-rejection list and catalogue.
 - Runtime review flags are checked against the policy review list and catalogue.
