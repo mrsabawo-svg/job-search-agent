@@ -2,7 +2,7 @@ policy_id: remote_software_engineering_job_qualifier
 version: 1
 status: approved
 approval:
-  approved_on: 2026-11-04
+  approved_on: "2026-11-04"
   basis: Milestone 1 policy-to-code audit and final CI verification
   scope: Opportunity qualification only; no browser execution or application submission
   constraints:
