@@ -61,9 +61,14 @@ def qualify_job(job: JobRecord, *, policy_version: int | None = None) -> Validat
 
     reasons += validate_policy_scope(job)
 
-    employer_reasons = validate_employer(job.employer_name, job.employer_domain)
-    reasons += employer_reasons
     employer_policy = policy["employer"]
+    employer_reasons = validate_employer(
+        job.employer_name,
+        job.employer_domain,
+        require_verifiable_identity=employer_policy["require_verifiable_identity"],
+        require_official_domain=employer_policy["require_official_domain_or_approved_ats"],
+    )
+    reasons += employer_reasons
     if not employer_reasons and employer_policy["require_verifiable_identity"] and employer_policy["require_official_domain_or_approved_ats"]:
         if employer_policy["identity_relationship_unverified"] == "REJECT":
             reasons.append("employer_unverifiable")
