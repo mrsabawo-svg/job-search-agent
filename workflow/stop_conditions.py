@@ -1,6 +1,7 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from datetime import datetime, timezone
 from math import isfinite
+from numbers import Real
 
 from policy_loader import load_job_search_policy
 
@@ -23,10 +24,28 @@ class StopLimits:
         values = load_job_search_policy().get("stop_conditions")
         if not isinstance(values, dict):
             raise ValueError("Policy requires stop_conditions mapping")
-        try:
-            return cls(**values)
-        except TypeError as exc:
-            raise ValueError("Policy stop_conditions do not match supported limits") from exc
+        expected = {item.name for item in fields(cls)}
+        if set(values) != expected:
+            missing = sorted(expected - set(values))
+            unknown = sorted(set(values) - expected)
+            raise ValueError(f"Stop-condition policy keys mismatch; missing={missing}, unknown={unknown}")
+        for name, value in values.items():
+            if name == "max_llm_cost_usd":
+                if isinstance(value, bool) or not isinstance(value, Real) or not isfinite(value) or value < 0:
+                    raise ValueError(f"Stop-condition limit {name} must be finite and non-negative")
+            elif isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ValueError(f"Stop-condition limit {name} must be a non-negative integer")
+        if values["max_application_attempts"] != 0:
+            raise ValueError("V1 policy must prohibit application attempts")
+        return cls(**values)
+
+
+class StopConditionReached(RuntimeError):
+    """Raised before execution when one or more run limits have been reached."""
+
+    def __init__(self, reasons: list[str]):
+        self.reasons = tuple(reasons)
+        super().__init__("Execution blocked by stop conditions: " + ", ".join(reasons))
 
 
 def stop_reasons(
@@ -55,10 +74,10 @@ def stop_reasons(
         "retries_for_operation": retries_for_operation,
         "llm_calls": llm_calls,
     }
-    if any(value < 0 for value in counters.values()):
-        raise ValueError("Stop-condition counters cannot be negative")
-    if not isfinite(llm_cost_usd) or llm_cost_usd < 0:
-        raise ValueError("LLM cost must be a finite non-negative value")
+    if any(isinstance(value, bool) or not isinstance(value, int) or value < 0 for value in counters.values()):
+        raise ValueError("Stop-condition counters must be non-negative integers")
+    if isinstance(llm_cost_usd, bool) or not isinstance(llm_cost_usd, Real) or not isfinite(llm_cost_usd) or llm_cost_usd < 0:
+        raise ValueError("LLM cost must be a finite non-negative number")
 
     reasons = []
     if sources_attempted >= limits.max_sources_per_run:
@@ -91,6 +110,13 @@ def stop_reasons(
             reasons.append("runtime_budget_exhausted")
 
     return reasons
+
+
+def enforce_run_limits(**kwargs) -> None:
+    """Call immediately before every discovery, validation, browser or application side effect."""
+    reasons = stop_reasons(**kwargs)
+    if reasons:
+        raise StopConditionReached(reasons)
 
 
 def budget_exhausted(**kwargs) -> bool:
