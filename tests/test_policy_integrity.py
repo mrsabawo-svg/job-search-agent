@@ -166,3 +166,25 @@ def test_role_policy_configuration_is_mandatory_and_supported():
     policy = load_job_search_policy()
     assert policy["role"]["require_target_category_match"] is True
     assert policy["role"]["unrelated_roles"] == "REJECT"
+
+
+def test_policy_approval_record_is_complete_and_versioned():
+    policy = load_job_search_policy()
+    assert policy["status"] == "approved"
+    approval = policy["approval"]
+    assert approval["approved_on"] == "2026-11-04"
+    assert approval["basis"]
+    assert approval["scope"]
+    assert approval["constraints"]
+
+
+def test_approved_policy_without_signoff_record_is_rejected(monkeypatch):
+    monkeypatch.setattr(policy_loader, "_load_yaml", lambda path: {"status": "approved"})
+    with pytest.raises(PolicyConfigurationError, match="complete approval record"):
+        load_job_search_policy()
+
+
+def test_unknown_policy_status_is_rejected(monkeypatch):
+    monkeypatch.setattr(policy_loader, "_load_yaml", lambda path: {"status": "published"})
+    with pytest.raises(PolicyConfigurationError, match="status must be"):
+        load_job_search_policy()
