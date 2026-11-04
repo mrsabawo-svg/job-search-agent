@@ -34,6 +34,7 @@ hard_rejections:
   - not_remote
   - employment_type_not_allowed
   - employer_unverifiable
+  - region_ineligible
   - paid_to_apply
   - pay_to_start
   - dm_only_hiring
