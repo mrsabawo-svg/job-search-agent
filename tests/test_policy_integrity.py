@@ -144,7 +144,7 @@ def test_role_policy_is_runtime_consumed_and_rejects_out_of_scope_roles(monkeypa
     raw = json.loads((root / "data/samples/valid_jobs.json").read_text())[0]
     job = JobRecord.model_validate(raw)
     policy = load_job_search_policy()
-    policy["target_categories"] = ["backend_engineering"]
+    policy["target_categories"] = ["frontend_engineering"]
     monkeypatch.setattr(policy_validator, "load_job_search_policy", lambda: policy)
     assert "off_domain" in validate_policy_scope(job)
 
