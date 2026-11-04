@@ -73,7 +73,7 @@ def test_every_declared_hard_rejection_is_implemented_and_documented():
         }
     )
     hard_rejections = set(policy["hard_rejections"])
-    assert hard_rejections <= implemented
+    assert hard_rejections == implemented
     assert hard_rejections <= set(catalogue["rejection_reasons"])
 
 
@@ -131,3 +131,34 @@ def test_decision_catalogue_requires_nonempty_descriptions():
     catalogue = load_decision_catalogue()
     assert all(value.strip() for value in catalogue['rejection_reasons'].values())
     assert all(value.strip() for value in catalogue['review_flags'].values())
+
+
+
+def test_role_policy_is_runtime_consumed_and_rejects_out_of_scope_roles():
+    from rules.policy_validator import validate_policy_scope
+    from schema.job_record import JobRecord
+    import json
+
+    root = Path(__file__).resolve().parents[1]
+    raw = json.loads((root / "data/samples/valid_jobs.json").read_text())[0]
+    raw["category"] = "marketing"
+    assert "off_domain" in validate_policy_scope(JobRecord.model_validate(raw))
+
+
+def test_policy_declares_only_implemented_runtime_rejection_codes():
+    policy = load_job_search_policy()
+    catalogue = load_decision_catalogue()
+    implemented = set(PATTERNS) | {
+        "off_domain", "pay_unstated", "commission_only", "equity_only",
+        "employment_type_not_allowed", "not_remote", "employer_unverifiable",
+        "region_ineligible", "source_url_invalid", "source_blocked",
+        "source_not_approved",
+    }
+    assert set(policy["hard_rejections"]) == implemented
+    assert set(policy["hard_rejections"]) <= set(catalogue["rejection_reasons"])
+
+
+def test_role_policy_configuration_is_mandatory_and_supported():
+    policy = load_job_search_policy()
+    assert policy["role"]["require_target_category_match"] is True
+    assert policy["role"]["unrelated_roles"] == "REJECT"
