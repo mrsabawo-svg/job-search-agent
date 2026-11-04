@@ -3,7 +3,7 @@
 **Audit date:** 2026-11-04  
 **Policy version:** 1  
 **Canonical policy:** `policy/job_search_policy.yaml`  
-**Status:** Execution-boundary integration implemented; final CI and acceptance review pending.
+**Status:** Engineering implementation complete; final CI passed; policy owner sign-off pending.
 
 ## Executive result
 
@@ -25,7 +25,8 @@ Run budgets now have a concrete in-memory execution boundary in `workflow/run_ex
 | Approved sources and watchlist | `rules/source_validator.py` | Source allow/deny, host matching, watchlist and path safety tests |
 | Hiring-risk patterns | `rules/risk_validator.py` | Risk-pattern tests and catalogue parity test |
 | Decision authorization | `policy_loader.py` | Catalogue completeness and runtime-code authorization tests |
-| Stop-limit policy | `workflow/stop_conditions.py` | Limit boundary, malformed counter, strict policy schema and guard exception tests |\n| Run execution gate | `workflow/run_executor.py` | Exhausted budgets block callbacks; failed attempts consume budget; qualification uses validation gate |
+| Stop-limit policy | `workflow/stop_conditions.py` | Limit boundary, malformed counter, strict policy schema and guard exception tests |
+| Run execution gate | `workflow/run_executor.py` | Exhausted budgets block callbacks; failed attempts consume budget; qualification uses validation gate |
 
 ## M1-POL-05 — Validator consolidation
 
@@ -43,11 +44,14 @@ Run budgets now have a concrete in-memory execution boundary in `workflow/run_ex
 - Counters reject booleans, negative values and non-integers.
 - Runtime timestamps must be timezone-aware.
 - `enforce_run_limits` raises `StopConditionReached` before a caller proceeds when any budget is exhausted.
-- `workflow/run_executor.py` invokes the guard before source, discovery, candidate and validation callbacks, then reserves the attempt before callback execution. Failed callbacks still consume the reserved attempt.\n- `RunExecutor.qualify_job` routes the existing qualification path through the validation budget gate.\n- Browser execution is unavailable in Milestone 1; application execution is blocked unconditionally. No browser or application side-effect boundary is implemented here.\n- Counters are in-memory and run-scoped. Durable persistence and restart recovery remain later-milestone responsibilities. Future adapters must use `RunExecutor.execute`.
+- `workflow/run_executor.py` invokes the guard before source, discovery, candidate and validation callbacks, then reserves the attempt before callback execution. Failed callbacks still consume the reserved attempt.
+- `RunExecutor.qualify_job` routes the existing qualification path through the validation budget gate.
+- Browser execution is unavailable in Milestone 1; application execution is blocked unconditionally. No browser or application side-effect boundary is implemented here.
+- Counters are in-memory and run-scoped. Durable persistence and restart recovery remain later-milestone responsibilities. Future adapters must use `RunExecutor.execute`.
 
 ## M1-POL-07 — Full policy-to-code regression audit
 
-**Audit and current execution-boundary integration complete; final CI and acceptance review pending.**
+**Complete for Milestone 1 engineering scope.**
 - Every active hard-rejection code is implemented and documented.
 - Runtime rejection codes are checked against the policy hard-rejection list and catalogue.
 - Runtime review flags are checked against the policy review list and catalogue.
@@ -60,7 +64,7 @@ Run budgets now have a concrete in-memory execution boundary in `workflow/run_ex
 
 ## Release gate
 
-The engineering implementation and current qualification execution-boundary integration are complete. Final CI passed for commit `27c35553cbb05bab40c35e2950cf55c4debfae78`.
+The engineering implementation and current qualification execution-boundary integration are complete. Final CI passed for the final audit commit; see the run linked in the milestone completion report.
 
 The policy remains `draft` intentionally. This audit does not grant policy approval on behalf of the policy owner. Before treating the policy as operationally approved, the policy owner must review and approve its eligibility boundaries and source registry. Milestone 2 should begin only after that policy sign-off.
 
