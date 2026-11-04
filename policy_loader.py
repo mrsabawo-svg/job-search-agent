@@ -80,6 +80,24 @@ def load_job_search_policy() -> dict[str, Any]:
     if any(not isinstance(value, str) or not value for value in accepted_types):
         raise PolicyConfigurationError("Accepted compensation types must be non-empty strings")
 
+    geography = policy.get("geography")
+    if not isinstance(geography, dict):
+        raise PolicyConfigurationError("Job search policy requires geography settings")
+    if not isinstance(geography.get("require_country_or_region_statement"), bool):
+        raise PolicyConfigurationError("Geography policy requires require_country_or_region_statement boolean")
+    for setting in ("unknown_eligibility", "applicant_location_match_without_profile"):
+        if geography.get(setting) not in {"REVIEW", "REJECT"}:
+            raise PolicyConfigurationError(f"Geography policy requires {setting} to be REVIEW or REJECT")
+
+    employer = policy.get("employer")
+    if not isinstance(employer, dict):
+        raise PolicyConfigurationError("Job search policy requires employer settings")
+    for setting in ("require_verifiable_identity", "require_official_domain_or_approved_ats"):
+        if not isinstance(employer.get(setting), bool):
+            raise PolicyConfigurationError(f"Employer policy requires {setting} boolean")
+    if employer.get("identity_relationship_unverified") not in {"REVIEW", "REJECT"}:
+        raise PolicyConfigurationError("Employer policy requires identity_relationship_unverified to be REVIEW or REJECT")
+
     sources = policy.get("sources")
     if not isinstance(sources, dict):
         raise PolicyConfigurationError("Job search policy requires source settings")
