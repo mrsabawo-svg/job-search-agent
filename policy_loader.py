@@ -59,6 +59,26 @@ def _load_yaml(relative_path: str) -> dict[str, Any]:
 
 def load_job_search_policy() -> dict[str, Any]:
     policy = _load_yaml("policy/job_search_policy.yaml")
+    if policy.get("status") not in {"draft", "approved", "retired"}:
+        raise PolicyConfigurationError("Job search policy status must be draft, approved or retired")
+    if policy["status"] == "approved":
+        approval = policy.get("approval")
+        required_approval_fields = ("approved_on", "basis", "scope", "constraints")
+        if not isinstance(approval, dict) or any(
+            field not in approval for field in required_approval_fields
+        ):
+            raise PolicyConfigurationError("Approved policy requires a complete approval record")
+        if not isinstance(approval["approved_on"], str) or not approval["approved_on"].strip():
+            raise PolicyConfigurationError("Approved policy requires an approval date")
+        if any(
+            not isinstance(approval[field], str) or not approval[field].strip()
+            for field in ("basis", "scope")
+        ):
+            raise PolicyConfigurationError("Approved policy requires approval basis and scope")
+        if not isinstance(approval["constraints"], list) or not approval["constraints"] or any(
+            not isinstance(item, str) or not item.strip() for item in approval["constraints"]
+        ):
+            raise PolicyConfigurationError("Approved policy requires non-empty approval constraints")
     if not isinstance(policy.get("version"), int) or isinstance(policy.get("version"), bool) or policy["version"] < 1:
         raise PolicyConfigurationError("Job search policy requires a positive integer version")
     if not isinstance(policy.get("target_categories"), list) or not policy["target_categories"]:
