@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from domain.decision_states import DecisionState
 from policy_loader import load_job_search_policy, validate_decision_codes
 from rules.employer_validator import validate_employer
+from rules.geography_validator import validate_geography
 from rules.policy_validator import validate_policy_scope
 from rules.risk_validator import detect_risk
 from rules.source_validator import validate_source
@@ -59,15 +60,21 @@ def qualify_job(job: JobRecord, *, policy_version: int | None = None) -> Validat
     reasons += [code for code in source_findings if code != "source_requires_review"]
 
     reasons += validate_policy_scope(job)
-    reasons += validate_employer(job.employer_name, job.employer_domain)
-    if job.employer_domain:
-        review_flags.append("employer_identity_not_independently_verified")
-    reasons += detect_risk(job.description_text)
 
-    if not job.eligible_locations:
-        review_flags.append("geographic_eligibility_unclear")
-    else:
-        review_flags.append("applicant_location_match_not_assessed")
+    employer_reasons = validate_employer(job.employer_name, job.employer_domain)
+    reasons += employer_reasons
+    employer_policy = policy["employer"]
+    if not employer_reasons and employer_policy["require_verifiable_identity"] and employer_policy["require_official_domain_or_approved_ats"]:
+        if employer_policy["identity_relationship_unverified"] == "REJECT":
+            reasons.append("employer_unverifiable")
+        else:
+            review_flags.append("employer_identity_not_independently_verified")
+
+    geography_reasons, geography_flags = validate_geography(job)
+    reasons += geography_reasons
+    review_flags += geography_flags
+
+    reasons += detect_risk(job.description_text)
 
     reasons = list(dict.fromkeys(reasons))
     review_flags = list(dict.fromkeys(review_flags))
