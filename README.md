@@ -20,6 +20,9 @@ There is no second eligibility policy file. Changes to eligibility requirements 
 - Unknown facts become REVIEW, never an assumed pass.
 - One policy-scope validator owns category, employment, remote-work and compensation eligibility; source, employer, geography and risk validators own their separate evidence domains.
 
+## Milestone 1 status
+The policy-to-code audit and remaining release gate are recorded in [Milestone 1 traceability audit](docs/milestone-1-policy-to-code-audit.md). The policy remains in draft until execution-boundary stop-condition integration is verified.
+
 ## Architecture
 - [Candidate Competency and Engineering Fit Architecture](docs/architecture/candidate_competency_model.md) — balanced assessment across technical capability, engineering practice and professional engineering behaviours, grounded in evidence.
 - Candidate suitability is a separate subsystem from opportunity qualification.
