@@ -16,6 +16,8 @@ def write_source_policy_root(root, approved_sources, *, approved_path="sources/a
         "employment_types: [full_time]\n"
         "workplace: remote_only\n"
         "compensation: {accepted_types: [salary], require_amount: true, require_currency: true, require_period: true, reject_unspecified: true}\n"
+        "geography: {require_country_or_region_statement: true, unknown_eligibility: REVIEW, applicant_location_match_without_profile: REVIEW}\n"
+        "employer: {require_verifiable_identity: true, require_official_domain_or_approved_ats: true, identity_relationship_unverified: REVIEW}\n"
         f"sources: {{employer_ats_only_by_default: true, approved_source_file: '{approved_path}', watchlist_file: 'sources/watchlist.yaml'}}\n",
         encoding="utf-8",
     )
