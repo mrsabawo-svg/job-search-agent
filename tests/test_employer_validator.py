@@ -26,3 +26,24 @@ def test_rejects_malformed_employer_domain(domain):
 
 def test_rejects_missing_employer_identity():
     assert validate_employer("Example Company", None) == ["employer_unverifiable"]
+
+
+
+def test_identity_requirement_can_be_disabled_by_explicit_policy():
+    assert validate_employer(
+        "", None, require_verifiable_identity=False, require_official_domain=True
+    ) == []
+
+
+def test_official_domain_requirement_can_be_disabled_by_explicit_policy():
+    assert validate_employer(
+        "Example Company", None,
+        require_verifiable_identity=True, require_official_domain=False
+    ) == []
+
+
+def test_required_official_domain_is_enforced_by_policy():
+    assert validate_employer(
+        "Example Company", None,
+        require_verifiable_identity=True, require_official_domain=True
+    ) == ["employer_unverifiable"]
