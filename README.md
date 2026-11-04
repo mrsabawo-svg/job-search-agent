@@ -18,6 +18,7 @@ There is no second eligibility policy file. Changes to eligibility requirements 
 - Explicit salary/hourly pay with amount, currency and period required.
 - Employer ATS sources enabled by default; third-party boards require approval.
 - Unknown facts become REVIEW, never an assumed pass.
+- One policy-scope validator owns category, employment, remote-work and compensation eligibility; source, employer, geography and risk validators own their separate evidence domains.
 
 ## Architecture
 - [Candidate Competency and Engineering Fit Architecture](docs/architecture/candidate_competency_model.md) — balanced assessment across technical capability, engineering practice and professional engineering behaviours, grounded in evidence.
@@ -25,7 +26,7 @@ There is no second eligibility policy file. Changes to eligibility requirements 
 - The competency architecture does not change or interrupt the active Milestone 1 repair sequence.
 
 ## Safety
-This milestone qualifies opportunities only. No application submission, legal declarations, or applicant-data disclosure. Human review and explicit approval are mandatory before any future submission feature.
+This milestone qualifies opportunities only. No application submission, legal declarations, or applicant-data disclosure. Human review and explicit approval are mandatory before any future submission feature. Run budgets are defined in the canonical policy and must be checked through `workflow.stop_conditions.enforce_run_limits` before any future execution-side effect.
 
 ## Setup
 Python 3.11+: `pip install -r requirements.txt` then `pytest -q`.
