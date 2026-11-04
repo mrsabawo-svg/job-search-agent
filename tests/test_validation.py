@@ -169,3 +169,19 @@ def test_qualification_uses_loaded_policy_version():
 
     result = qualify_job(JobRecord.model_validate(sample("valid_jobs.json")))
     assert result.policy_version == load_job_search_policy()["version"]
+
+
+
+def test_qualifier_never_emits_accept_for_uncertain_evidence():
+    result = qualify_job(JobRecord.model_validate(sample("valid_jobs.json")))
+    assert result.decision == DecisionState.REVIEW
+    assert result.review_flags
+    assert result.decision != DecisionState.ACCEPT
+
+
+def test_qualifier_rejects_out_of_scope_role_from_policy():
+    raw = sample("valid_jobs.json")
+    raw["category"] = "qa_automation"
+    result = qualify_job(JobRecord.model_validate(raw))
+    assert result.decision in {DecisionState.REVIEW, DecisionState.REJECT}
+    assert "off_domain" not in result.reason_codes
