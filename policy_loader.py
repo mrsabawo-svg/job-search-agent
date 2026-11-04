@@ -106,14 +106,14 @@ def load_job_search_policy() -> dict[str, Any]:
     if role.get("unrelated_roles") != "REJECT":
         raise PolicyConfigurationError("V1 unrelated-role policy must be REJECT")
 
-    if len(policy["target_categories"]) != len(set(policy["target_categories"])):
-        raise PolicyConfigurationError("Target categories must be unique")
     if any(not isinstance(item, str) or not item.strip() for item in policy["target_categories"]):
         raise PolicyConfigurationError("Target categories must be non-empty strings")
-    if len(policy["employment_types"]) != len(set(policy["employment_types"])):
-        raise PolicyConfigurationError("Employment types must be unique")
+    if len(policy["target_categories"]) != len(set(policy["target_categories"])):
+        raise PolicyConfigurationError("Target categories must be unique")
     if any(not isinstance(item, str) or not item.strip() for item in policy["employment_types"]):
         raise PolicyConfigurationError("Employment types must be non-empty strings")
+    if len(policy["employment_types"]) != len(set(policy["employment_types"])):
+        raise PolicyConfigurationError("Employment types must be unique")
 
     sources = policy.get("sources")
     if not isinstance(sources, dict):
