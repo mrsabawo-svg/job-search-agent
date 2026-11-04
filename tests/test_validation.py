@@ -21,6 +21,8 @@ def test_valid_looking_job_remains_review():
     result = qualify_job(JobRecord.model_validate(sample("valid_jobs.json")))
     assert result.decision == DecisionState.REVIEW
     assert not result.reason_codes
+    assert "employer_identity_not_independently_verified" in result.review_flags
+    assert "applicant_location_match_not_assessed" in result.review_flags
 
 
 def test_commission_crypto_is_rejected():
