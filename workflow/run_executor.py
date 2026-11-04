@@ -26,7 +26,7 @@ class RunCounters:
 
 
 class RunExecutor:
-    """The mandatory gate for run-level source, discovery and validation work."""
+    """The guarded entrypoint for run-level source, discovery and validation work."""
 
     def __init__(
         self,
@@ -63,13 +63,13 @@ class RunExecutor:
         Supported operations are source, discovery, candidate and validation.
         Browser and application execution are intentionally not exposed in v1.
         """
-        counters = {
-            "source": "sources_attempted",
-            "discovery": "discovery_attempts",
-            "candidate": "candidates",
-            "validation": "validation_attempts",
+        counter_by_operation = {
+            "source": ("sources_attempted", "max_sources_per_run"),
+            "discovery": ("discovery_attempts", "max_discovery_attempts"),
+            "candidate": ("candidates", "max_unique_candidates"),
+            "validation": ("validation_attempts", "max_validation_attempts"),
         }
-        if operation not in counters:
+        if operation not in counter_by_operation:
             if operation == "application":
                 raise StopConditionReached(("application_attempts_prohibited",))
             if operation == "browser":
@@ -77,18 +77,21 @@ class RunExecutor:
             raise ValueError(f"Unsupported run operation: {operation}")
 
         self._preflight(now=now)
-        counter_name = counters[operation]
+        counter_name, limit_name = counter_by_operation[operation]
         current = getattr(self.counters, counter_name)
-        limit_name = {
-            "source": "max_sources_per_run",
-            "discovery": "max_discovery_attempts",
-            "candidate": "max_unique_candidates",
-            "validation": "max_validation_attempts",
-        }[operation]
         if current >= getattr(self.limits, limit_name):
-            # Defensive local check keeps the reservation rule explicit.
             raise StopConditionReached((f"{operation}_budget_exhausted",))
 
         # Reserve before invoking the callback: exceptions still consume attempts.
         setattr(self.counters, counter_name, current + 1)
         return action()
+
+    def qualify_job(self, job, *, policy_version: int | None = None, now: datetime | None = None):
+        """Run deterministic qualification through the validation budget gate."""
+        from workflow.orchestrator import qualify_job
+
+        return self.execute(
+            "validation",
+            lambda: qualify_job(job, policy_version=policy_version),
+            now=now,
+        )
