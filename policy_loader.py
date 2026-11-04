@@ -98,6 +98,23 @@ def load_job_search_policy() -> dict[str, Any]:
     if employer.get("identity_relationship_unverified") not in {"REVIEW", "REJECT"}:
         raise PolicyConfigurationError("Employer policy requires identity_relationship_unverified to be REVIEW or REJECT")
 
+    role = policy.get("role")
+    if not isinstance(role, dict):
+        raise PolicyConfigurationError("Job search policy requires role settings")
+    if role.get("require_target_category_match") is not True:
+        raise PolicyConfigurationError("V1 role policy must require target category matching")
+    if role.get("unrelated_roles") != "REJECT":
+        raise PolicyConfigurationError("V1 unrelated-role policy must be REJECT")
+
+    if len(policy["target_categories"]) != len(set(policy["target_categories"])):
+        raise PolicyConfigurationError("Target categories must be unique")
+    if any(not isinstance(item, str) or not item.strip() for item in policy["target_categories"]):
+        raise PolicyConfigurationError("Target categories must be non-empty strings")
+    if len(policy["employment_types"]) != len(set(policy["employment_types"])):
+        raise PolicyConfigurationError("Employment types must be unique")
+    if any(not isinstance(item, str) or not item.strip() for item in policy["employment_types"]):
+        raise PolicyConfigurationError("Employment types must be non-empty strings")
+
     sources = policy.get("sources")
     if not isinstance(sources, dict):
         raise PolicyConfigurationError("Job search policy requires source settings")
