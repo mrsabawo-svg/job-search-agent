@@ -6,9 +6,11 @@ def validate_policy_scope(job: JobRecord) -> list[str]:
     policy = load_job_search_policy()
     reasons = []
 
+    role_policy = policy["role"]
     category_value = getattr(job.category, "value", job.category)
-    if category_value not in policy["target_categories"]:
-        reasons.append("off_domain")
+    if role_policy["require_target_category_match"] and category_value not in policy["target_categories"]:
+        if role_policy["unrelated_roles"] == "REJECT":
+            reasons.append("off_domain")
     if job.employment_type not in policy["employment_types"]:
         reasons.append("employment_type_not_allowed")
     if policy["workplace"] == "remote_only" and job.workplace != "remote":
