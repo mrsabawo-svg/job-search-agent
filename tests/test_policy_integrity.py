@@ -90,10 +90,12 @@ def test_canonical_policy_contains_merged_eligibility_requirements():
     assert policy["geography"] == {
         "require_country_or_region_statement": True,
         "unknown_eligibility": "REVIEW",
+        "applicant_location_match_without_profile": "REVIEW",
     }
     assert policy["employer"] == {
         "require_verifiable_identity": True,
         "require_official_domain_or_approved_ats": True,
+        "identity_relationship_unverified": "REVIEW",
     }
     assert policy["role"] == {
         "require_target_category_match": True,
