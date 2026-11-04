@@ -60,10 +60,8 @@ Run budgets now have a concrete in-memory execution boundary in `workflow/run_ex
 
 ## Release gate
 
-Do **not** change policy status from `draft` and do **not** begin Milestone 2 until:
-1. The stop-condition guard is wired into the actual workflow execution boundaries when those are introduced.
-2. Each boundary has a regression test proving an exhausted budget blocks the operation.
-3. The final integrated commit passes CI.
-4. The complete Milestone 1 acceptance checklist is reviewed against this audit.
+The engineering implementation and current qualification execution-boundary integration are complete. Final CI passed for commit `27c35553cbb05bab40c35e2950cf55c4debfae78`.
 
-The audit deliberately records the unimplemented runtime boundary rather than claiming a guard function alone protects future execution.
+The policy remains `draft` intentionally. This audit does not grant policy approval on behalf of the policy owner. Before treating the policy as operationally approved, the policy owner must review and approve its eligibility boundaries and source registry. Milestone 2 should begin only after that policy sign-off.
+
+The current boundary is process-local and covers source, discovery, candidate and validation callbacks routed through `RunExecutor`. No live discovery adapter, browser execution or application submission path exists in Milestone 1. Future adapters must use this gate. Durable counters, restart recovery and cross-process enforcement belong to the persistence/workflow milestones.
