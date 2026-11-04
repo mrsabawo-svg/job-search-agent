@@ -113,3 +113,38 @@ def test_unknown_operation_is_rejected_without_side_effect():
 def test_executor_requires_timezone_aware_start():
     with pytest.raises(ValueError, match="timezone"):
         RunExecutor(started_at=datetime(2026, 11, 4, 10, 0), limits=small_limits())
+
+
+def test_qualification_entrypoint_consumes_validation_budget():
+    import json
+    from pathlib import Path
+
+    from schema.job_record import JobRecord
+    from domain.decision_states import DecisionState
+
+    root = Path(__file__).resolve().parents[1]
+    sample = json.loads((root / "data/samples/valid_jobs.json").read_text())[0]
+    job = JobRecord.model_validate(sample)
+    executor = RunExecutor(limits=small_limits())
+    result = executor.qualify_job(job)
+
+    assert result.decision == DecisionState.REVIEW
+    assert executor.counters.validation_attempts == 1
+
+
+def test_qualification_entrypoint_blocks_before_qualifier_when_exhausted(monkeypatch):
+    import workflow.orchestrator as orchestrator
+
+    executor = RunExecutor(limits=small_limits(max_validation_attempts=0))
+    called = False
+
+    def should_not_qualify(*args, **kwargs):
+        nonlocal called
+        called = True
+
+    monkeypatch.setattr(orchestrator, "qualify_job", should_not_qualify)
+    with pytest.raises(StopConditionReached):
+        executor.qualify_job(object())
+
+    assert called is False
+    assert executor.counters.validation_attempts == 0
